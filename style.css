@@ -19,9 +19,18 @@ body {
 }
 
 .tile {
+    position: relative;
+    /* Это важно! */
     width: var(--tile-size);
     height: var(--tile-size);
     box-sizing: border-box;
+    contain: content;
+
+    contain: paint;
+    /* не провоцируем repaint вокруг */
+    will-change: contents;
+    /* мягкий намёк композитору */
+
     /* background-image: url('./sprites/Walk1.png');  */
     background-repeat: no-repeat;
 }
@@ -42,14 +51,127 @@ body {
     background-color: #4d5f95;
     box-shadow:
         inset 2px 2px 3px rgba(0, 0, 0, 0.2),
-         -2px -2px 5px rgba(187, 190, 236, 0.2),
+        -2px -2px 5px rgba(187, 190, 236, 0.2),
         inset 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .tile.wall {
     background-color: #555;
     box-shadow:
-         -2px -2px 3px rgba(5, 36, 9, 0.259),
+        -2px -2px 3px rgba(5, 36, 9, 0.259),
         inset 2px 2px 5px rgba(132, 146, 132, 0.2),
-         -2px -2px 8px rgba(5, 36, 9, 0.259);
+        -2px -2px 8px rgba(5, 36, 9, 0.259);
 }
+
+
+
+/* Или используйте emoji или изображения */
+.health::before {
+    content: '❤️';
+}
+
+.sword::before {
+    content: '⚔️';
+}
+
+.enemy::before {
+    content: '💀';
+}
+
+.player::before {
+    content: '⭐    ';
+}
+
+.creature,
+.item {
+    position: absolute;
+    pointer-events: none;
+    /* меньше hit-testing */
+    backface-visibility: hidden;
+    /* холодный привет композитору */
+    transform: translateZ(0);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* отдельный слой под движущиеся штуки */
+}
+
+/* Стили сущностей */
+/* .creature {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    animation: float 2s infinite ease-in-out;
+}
+
+.creature.player {
+    z-index: 20;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+}
+
+.creature.enemy {
+    z-index: 15;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+     */
+
+/* Стили предметов */
+.creature.player {
+    z-index: 20;
+    /* text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); */
+}
+.item {
+    /* position: absolute; */
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    font-size: 16px;
+}
+
+.item.health {
+    color: #ff4444;
+    animation: heartbeat 1.5s infinite ease-in-out;
+}
+
+.item.sword {
+    color: #aaaaff;
+    animation: shine 2s infinite ease-in-out;
+}
+
+/* Анимации */
+/* @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-2px); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+@keyframes shine {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.5); }
+} */
+
+/* .tile:has(.player) {
+    box-shadow: 0 0 10px gold;
+} */
+
+/* .field:focus {
+    outline: none;
+} */
