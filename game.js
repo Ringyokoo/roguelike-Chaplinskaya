@@ -27,14 +27,11 @@ const SWORD_COUNT = 2;
 
 const ENEMY_COUNT = 10;
 
-// Глобальные переменные для состояния игры
 let playerPosition = null;
 let enemies = [];
 let gameMapGlobal = [];
 
 const fieldElement = document.querySelector('.field');
-
-//-------------------------------------------
 
 function createEmptyMap() {
     const map = new Array(ROWS);
@@ -52,22 +49,6 @@ function createEmptyMap() {
     return map;
 }
 
-//-------------------------------------------
-
-// function createEmptyMap() {
-//     const map = [];
-//     for (let x = 0; x < ROWS; x++) {
-//         map[x] = [];
-//         for (let y = 0; y < COLUMNS; y++) {
-//             map[x][y] = {
-//                 type: 'wall',
-//                 x: x,
-//                 y: y,
-//             };
-//         }
-//     }
-//     return map;
-// }
 
 function randomInteger(min, max) {
     let rand = min + Math.random() * (max + 1 - min);
@@ -143,7 +124,7 @@ function createPath(map, coord) {
     }
 
 }
-//-------------------------------------------
+
 function findRoom(cell) {
     return roomsRelevant.find(r =>
         cell.x >= r.x &&
@@ -152,35 +133,21 @@ function findRoom(cell) {
         cell.y < r.y + r.h
     );
 }
-//-------------------------------------------
-
-// function findRoom(obj) {
-//     const foundRoom = roomsRelevant.find(room =>
-//         obj.y >= room.x &&
-//         obj.y < room.x + room.w &&
-//         obj.x >= room.y &&
-//         obj.x < room.y + room.h
-//     );
-//     // console.log(obj, foundRoom);
-//     return foundRoom;
-// }
 
 
-
-//-------------------------------------------
 let roomsRelevant = [];
 function checkAvailable(map) {
     return roomsRelevant.filter(room => {
         const { x, y, w, h } = room;
 
-        // Контакт с путём по верх/низ
+        // верх/низ
         for (let i = x; i < x + w; i++) {
             if (map[y + h]?.[i]?.path || map[y - 1]?.[i]?.path || room.crossPath) {
                 room.crossPath = true;
                 return false;
             }
         }
-        // Контакт с путём по лев/прав
+        // лев/прав
         for (let j = y; j < y + h; j++) {
             if (map[j]?.[x + w]?.path || map[j]?.[x - 1]?.path || room.crossPath) {
                 room.crossPath = true;
@@ -190,7 +157,7 @@ function checkAvailable(map) {
 
         if (!room.set) room.set = new Set();
 
-        // соберём соседей по горизонтальным кромкам
+        // верх/низ
         for (let i = x; i < x + w; i++) {
             const down = map[y + h]?.[i];
             const up = map[y - 1]?.[i];
@@ -199,7 +166,7 @@ function checkAvailable(map) {
             if (r1) room.set.add(r1);
             if (r2) room.set.add(r2);
         }
-        // и по вертикальным кромкам
+        // лев/прав
         for (let j = y; j < y + h; j++) {
             const right = map[j]?.[x + w];
             const left = map[j]?.[x - 1];
@@ -209,72 +176,9 @@ function checkAvailable(map) {
             if (r2) room.set.add(r2);
         }
 
-        return true; // это комната пока недоступна — оставляем в списке
+        return true;
     });
 }
-
-//-------------------------------------------
-
-// function checkAvailable(map) {
-
-//     return (roomsRelevant.filter(room => {
-//         const { x, y, w, h } = room;
-
-
-//         for (let i = x; i < x + w; i++) {
-//             if (map[y + h]?.[i]?.path || map[y - 1]?.[i]?.path || map[y + h]?.[i]?.crossPath || map[y - 1]?.[i]?.crossPath || room.crossPath) {
-//                 room.crossPath = true;
-//                 return false;
-
-//             }
-
-//         }
-//         for (let i = y; i < y + h; i++) {
-//             if (map[i]?.[x + w]?.path || map[i]?.[x - 1]?.path || map[i]?.[x + w]?.crossPath || map[i]?.[x - 1]?.crossPath || room.crossPath) {
-//                 room.crossPath = true;
-//                 return false;
-//             }
-
-//         }
-//         if (!room.set) {
-//             room.set = new Set();
-//         }
-
-//         for (let i = x; i < x + w; i++) {
-//             if (map[y + h]?.[i]?.type === 'floor') {
-//                 if (findRoom(map[y + h][i])) {
-//                     room.set.add(findRoom(map[y + h][i]));
-//                 }
-
-//             }
-//             if (map[y - 1]?.[i]?.type === 'floor') {
-//                 if (findRoom(map[y - 1][i])) {
-//                     room.set.add(findRoom(map[y - 1][i]));
-//                 }
-
-
-//             }
-//         }
-
-//         for (let i = y; i < y + h; i++) {
-//             if (map[i]?.[x + w]?.type === 'floor') {
-//                 if (findRoom(map[i][x + w])) {
-//                     room.set.add(findRoom(map[i][x + w]));
-//                 }
-
-//             }
-//             if (map[i]?.[x - 1]?.type === 'floor') {
-//                 if (findRoom(map[i][x - 1])) {
-//                     room.set.add(findRoom(map[i][x - 1]));
-//                 }
-
-//             }
-//         }
-
-//         return true;
-//     }));
-// }
-
 
 
 function pathToNonAvailable(map) {
@@ -286,41 +190,12 @@ function pathToNonAvailable(map) {
     do {
         nonAvailable = checkAvailable(map);
 
-
         notNearRoom = nonAvailable.filter(item => item?.set?.size == 0);
-
 
         if (notNearRoom.length) {
 
             const nc = neareastFloor(map, notNearRoom[0]);
             if (!nc) return;
-
-            // let neareastCell = findNearestFloor(map, notNearRoom[0]);
-            // // console.log(neareastCell);
-            // if (neareastCell.coord == 'y') {
-            //     for (let j = Math.min(notNearRoom[0].y, neareastCell.y); j <= Math.max(notNearRoom[0].y, neareastCell.y); j++) {
-            //         // console.log(map[j][neareastCell.x]);
-            //         map[j][neareastCell.x].type = 'floor';
-            //         // console.log(map[j][neareastCell.x]);
-            //         if (map[j][neareastCell.x]?.path || map[j][neareastCell.x]?.crossPath) {
-
-            //             notNearRoom[0].crossPath = true;
-
-            //         }
-            //         else {
-            //             let foundRoom = findRoom(map[j][neareastCell.x]);
-            //             if (foundRoom && foundRoom !== notNearRoom[0]) {
-            //                 if (!foundRoom.set) {
-            //                     foundRoom.set = new Set();
-            //                 }
-            //                 notNearRoom[0].set.add(foundRoom);
-            //                 // console.log(foundRoom, '2');
-            //                 foundRoom.set.add(notNearRoom[0]);
-            //             }
-            //         }
-
-            //     }
-            // }
 
             if (nc.coord === 'y') {
                 for (let yy = Math.min(notNearRoom[0].y, nc.y); yy <= Math.max(notNearRoom[0].y, nc.y); yy++) {
@@ -353,32 +228,6 @@ function pathToNonAvailable(map) {
                     }
                 }
             }
-
-            // else {
-            //     for (let j = Math.min(notNearRoom[0].x, neareastCell.x); j <= Math.max(notNearRoom[0].x, neareastCell.x); j++) {
-
-            //         map[neareastCell.y][j].type = 'floor';
-            //         // console.log(map[neareastCell.y][j]);
-            //         if (map[neareastCell.y][j]?.path || map[neareastCell.y][j]?.crossPath) {
-            //             notNearRoom[0].crossPath = true;
-
-            //         }
-            //         else {
-            //             let foundRoom = findRoom(map[neareastCell.y][j]);
-            //             if (foundRoom && foundRoom !== notNearRoom[0]) {
-            //                 if (!foundRoom.set) {
-            //                     foundRoom.set = new Set();
-            //                 }
-            //                 notNearRoom[0].set.add(foundRoom);
-            //                 // console.log(foundRoom, '2');
-            //                 foundRoom.set.add(notNearRoom[0]);
-            //             }
-            //         }
-
-            //     }
-            // }
-
-
 
         }
         c++;
@@ -426,7 +275,6 @@ function groupConnectedObjects(objects) {
 
 function pathToNonAvailableNearRoom(map) {
     let nonAvailable;
-    // let notNearRoom;
     let nearRoom;
     let nearRoomLast;
     let c = 0;
@@ -488,35 +336,6 @@ function pathToNonAvailableNearRoom(map) {
                         }
                     }
                 }
-
-
-                // let neareastCell = findNearestPath(map, nearRoom[0]);
-
-                // if (neareastCell.coord == 'y') {
-                //     for (let j = Math.min(nearRoom[0].y, neareastCell.y); j <= Math.max(nearRoom[0].y, neareastCell.y); j++) {
-                //         map[j][neareastCell.x].type = 'floor';
-
-                //         if (map[j][neareastCell.x]?.path || map[j][neareastCell.x]?.crossPath) {
-
-                //             nearRoom[0].crossPath = true;
-                //             nearRoom[0].set.forEach(room => {
-                //                 room.crossPath = true;
-                //             })
-                //         }
-                //     }
-                // } else {
-                //     for (let j = Math.min(nearRoom[0].x, neareastCell.x); j <= Math.max(nearRoom[0].x, neareastCell.x); j++) {
-                //         map[neareastCell.y][j].type = 'floor';
-                //         // console.log(map[neareastCell.y][j]);
-                //         if (map[neareastCell.y][j]?.path || map[neareastCell.y][j]?.crossPath) {
-                //             nearRoom[0].crossPath = true;
-                //             nearRoom[0].set.forEach(room => {
-                //                 room.crossPath = true;
-                //             })
-                //         }
-
-                //     }
-                // }
             }
             k++;
             console.log(nearRoom, nearRoom, nearRoom.length);
@@ -526,16 +345,15 @@ function pathToNonAvailableNearRoom(map) {
 
 }
 
-//-----------------------------------------------------------
+
 // predicate(cell) -> true, если клетка подходит
 function findNearest(map, room, predicate) {
     let minDistance = Infinity;
     let nearestCell = null;
     const { x, y, w, h } = room;
 
-    // вертикальные лучи из нижней и верхней кромки
     for (let i = x; i < x + w; i++) {
-        // вниз от нижней кромки
+        // вниз 
         for (let yy = y + h; yy < ROWS; yy++) {
             const cell = map[yy]?.[i];
             if (cell && predicate(cell)) {
@@ -544,7 +362,7 @@ function findNearest(map, room, predicate) {
                 break;
             }
         }
-        // вверх от верхней кромки
+        // вверх
         for (let yy = y - 1; yy >= 0; yy--) {
             const cell = map[yy]?.[i];
             if (cell && predicate(cell)) {
@@ -555,9 +373,9 @@ function findNearest(map, room, predicate) {
         }
     }
 
-    // горизонтальные лучи из правой и левой кромки
+
     for (let j = y; j < y + h; j++) {
-        // вправо от правой кромки
+        // вправо 
         for (let xx = x + w; xx < COLUMNS; xx++) {
             const cell = map[j]?.[xx];
             if (cell && predicate(cell)) {
@@ -566,7 +384,7 @@ function findNearest(map, room, predicate) {
                 break;
             }
         }
-        // влево от левой кромки
+        // влево
         for (let xx = x - 1; xx >= 0; xx--) {
             const cell = map[j]?.[xx];
             if (cell && predicate(cell)) {
@@ -580,163 +398,13 @@ function findNearest(map, room, predicate) {
     return nearestCell;
 }
 
-// Обёртки вместо старых функций
 const neareastFloor = (map, room) => findNearest(map, room, c => c.type === 'floor');
 const neareastPath = (map, room) => findNearest(map, room, c => c.path);
-//-----------------------------------------------------------
-
-
-// function findNearestFloor(map, room) {
-//     let minDistance = Infinity;
-//     let nearestCell = null;
-
-//     const { x, y, w, h } = room;
-
-//     //Поиск по Y вниз
-
-//     for (let i = x; i < x + w; i++) {
-//         for (let j = 0; j < ROWS - y - h; j++) {//Maybe 
-//             let fCountArr = y + h + j;
-//             // findMinDistance(fCountArr, i, x, y, map)
-//             if (map[fCountArr]?.[i]?.type === 'floor') {
-//                 const distance = Math.abs(x - i) + Math.abs(y - fCountArr); //Maybe 
-
-//                 if (distance && distance < minDistance) {
-//                     minDistance = distance;
-//                     nearestCell = { x: i, y: fCountArr, distance, coord: 'y' };//Maybe 
-//                 }
-
-//             }
-//         }
-//         //верх
-//         for (let j = y - 1; j >= 0; j--) {
-//             // findMinDistance(j, i, x, y, map)
-//             if (map[j]?.[i]?.type === 'floor') {
-//                 const distance = Math.abs(x - i) + Math.abs(y - j);
-
-//                 if (distance && distance < minDistance) {
-//                     minDistance = distance;
-//                     nearestCell = { x: i, y: j, distance, coord: 'y' };
-//                 }
-//                 // nearestCell = { x, y };
-
-//             }
-//         }
-//     }
-
-//     //Поиск по X
-//     for (let i = y; i < y + h; i++) {
-//         for (let j = 0; j < COLUMNS - x - w; j++) {
-//             let fCountArr = x + w + j;
-//             //  findMinDistance(i, fCountArr, y, x, map)
-//             if (map[i]?.[fCountArr]?.type === 'floor') {
-//                 const distance = Math.abs(y - i) + Math.abs(x - fCountArr); //Maybe 
-
-//                 if (distance && distance < minDistance) {
-//                     minDistance = distance;
-//                     nearestCell = { x: fCountArr, y: i, distance, coord: 'x' };
-//                 }
-
-//             }
-//         }
-//         for (let j = x - 1; j >= 0; j--) {
-//             // findMinDistance(i, j, y, x, map)
-//             if (map[i]?.[j]?.type === 'floor') {
-//                 const distance = Math.abs(y - i) + Math.abs(x - j);
-
-//                 if (distance && distance < minDistance) {
-//                     minDistance = distance;
-//                     nearestCell = { x: j, y: i, distance, coord: 'x' };
-//                 }
-
-//             }
-//         }
-//     }
-
-
-//     return nearestCell;
-// }
-
-// function findNearestPath(map, room) {
-//     let minDistance = Infinity;
-//     let nearestCell = null;
-
-//     const { x, y, w, h } = room;
-
-//     //Поиск по Y вниз
-
-//     for (let i = x; i < x + w; i++) {
-//         for (let j = 0; j < ROWS - y - h; j++) {//Maybe 
-//             let fCountArr = y + h + j;
-//             // findMinDistance(fCountArr, i, x, y, map)
-//             if (map[fCountArr]?.[i]?.path || map[fCountArr]?.[i]?.crossPath) {
-//                 const distance = Math.abs(x - i) + Math.abs(y - fCountArr); //Maybe 
-
-//                 if (distance && distance < minDistance) {
-//                     minDistance = distance;
-//                     nearestCell = { x: i, y: fCountArr, distance, coord: 'y' };//Maybe 
-//                 }
-
-//             }
-//         }
-//         //верх
-//         //верх
-//         for (let j = y - 1; j >= 0; j--) {
-//             // findMinDistance(j, i, x, y, map)
-//             if (map[j]?.[i]?.path || map[j]?.[i]?.crossPath) {
-//                 const distance = Math.abs(x - i) + Math.abs(y - j);
-
-//                 if (distance && distance < minDistance) {
-//                     minDistance = distance;
-//                     nearestCell = { x: i, y: j, distance, coord: 'y' };
-//                 }
-//                 // nearestCell = { x, y };
-
-//             }
-//         }
-//     }
-
-//     //Поиск по X
-//     for (let i = y; i < y + h; i++) {
-//         for (let j = 0; j < COLUMNS - x - w; j++) {
-//             let fCountArr = x + w + j;
-//             //  findMinDistance(i, fCountArr, y, x, map)
-//             if (map[i]?.[fCountArr]?.path || map[i]?.[fCountArr]?.crossPath) {
-//                 const distance = Math.abs(y - i) + Math.abs(x - fCountArr); //Maybe 
-
-//                 if (distance && distance < minDistance) {
-//                     minDistance = distance;
-//                     nearestCell = { x: fCountArr, y: i, distance, coord: 'x' };
-//                 }
-
-//             }
-//         }
-//         for (let j = x - 1; j >= 0; j--) {
-//             // findMinDistance(i, j, y, x, map)
-//             if (map[i]?.[j]?.path || map[i]?.[j]?.crossPath) {
-//                 const distance = Math.abs(y - i) + Math.abs(x - j);
-
-//                 if (distance && distance < minDistance) {
-//                     minDistance = distance;
-//                     nearestCell = { x: j, y: i, distance, coord: 'x' };
-//                 }
-
-//             }
-//         }
-//     }
-
-
-//     return nearestCell;
-// }
-
-
-
-//-----------------------------------------------------------------------------------
 
 function createRoom(map) {
     let room, hasCollision, tries = 0;
     do {
-        if (tries++ > 5000) return; // карта забита — ну всё, хватит
+        if (tries++ > 5000) return;
         room = paramRoom();
         hasCollision = roomsRelevant.some(el => checkCollision(room, el));
     } while (hasCollision);
@@ -781,13 +449,13 @@ function createRoom(map) {
 
 function placeItems(map, itemType, count) {
     let placed = 0;
-    const maxAttempts = 1000; // Чтобы избежать бесконечного цикла //do while
+    const maxAttempts = 1000; // попыток //do while
 
     while (placed < count && maxAttempts > 0) {
         const x = randomInteger(SIDE_INDENT, COLUMNS - SIDE_INDENT - 1);
         const y = randomInteger(SIDE_INDENT, ROWS - SIDE_INDENT - 1);
 
-        // Проверяем, можно ли разместить предмет здесь
+
         if (map[y][x].type === "floor" && !map[y][x].item && !map[y][x].creature) {
             map[y][x].item = itemType;
             placed++;
@@ -810,13 +478,15 @@ function placePlayer(map) {
 
         if (map[y][x].type === "floor" && !map[y][x].item && !map[y][x].creature) {
             map[y][x].creature = {
-                type: "player",
+                type: CREATURE_TYPES.PLAYER,
                 health: 100,
+                maxHealth: PLAYER_MAX_HEALTH,
                 attack: 10
             };
-            playerPosition = { x, y }; // сохраняем позицию для быстрого доступа
+            playerPosition = { x, y };
             placed = true;
         }
+
         attempts++;
     }
 }
@@ -829,7 +499,6 @@ function placeEnemies(map, count) {
         const x = randomInteger(SIDE_INDENT, COLUMNS - SIDE_INDENT - 1);
         const y = randomInteger(SIDE_INDENT, ROWS - SIDE_INDENT - 1);
 
-        // // Проверяем расстояние до игрока
         const distanceToPlayer = playerPosition ?
             Math.sqrt(Math.pow(x - playerPosition.x, 2) + Math.pow(y - playerPosition.y, 2)) : 10;
 
@@ -839,9 +508,10 @@ function placeEnemies(map, count) {
             distanceToPlayer > 5) {
 
             map[y][x].creature = {
-                type: "enemy",
+                type: CREATURE_TYPES.ENEMY,
                 health: 30,
-                attack: 5,
+                maxHealth: 30,
+                attack: 20,
                 id: `enemy_${Date.now()}_${Math.random()}`
             };
             placed++;
@@ -852,7 +522,7 @@ function placeEnemies(map, count) {
 
 
 
-const MOVE_DELAY = 90; // мс, можно крутить
+const MOVE_DELAY = 90; // мс
 let lastMoveTime = 0;
 const tileCache = new Map();
 fieldElement.setAttribute('tabindex', '0');
@@ -860,7 +530,6 @@ fieldElement.setAttribute('role', 'application');
 fieldElement.setAttribute('aria-label', 'Игровое поле');
 
 
-// Нормализуем нажатия клавиш (WASD + русская раскладка + стрелки)
 function keyToDelta(e) {
     const k = e.key.toLowerCase();
     if (k === 'arrowup' || k === 'w' || k === 'ц') return { dx: 0, dy: -1 };
@@ -869,11 +538,11 @@ function keyToDelta(e) {
     if (k === 'arrowright' || k === 'd' || k === 'в') return { dx: 1, dy: 0 };
     return null;
 }
-// ==== Рендер начальной карты ====
+
 function renderMap(map) {
     gameMapGlobal = map;
     tileCache.clear();
-    fieldElement.textContent = ''; // быстрее чем innerHTML = ''
+    fieldElement.textContent = '';
 
     // Используем DocumentFragment для массовой вставки
     const frag = document.createDocumentFragment();
@@ -902,27 +571,24 @@ function createTileElement(x, y, tile) {
     el.dataset.x = x;
     el.dataset.y = y;
 
-    // Кладем в кэш до наполнения
     tileCache.set(keyOf(x, y), el);
 
-    if (tile.item) {
-        el.appendChild(makeChild('item', tile.item));
-    }
-    if (tile.creature) {
-        el.appendChild(makeChild('creature', tile.creature.type));
-    }
+    if (tile.item) el.appendChild(makeChild('item', tile.item));
+    if (tile.creature) el.appendChild(makeChild('creature', tile.creature.type));
+
+    // добавим полоску HP
+    el.appendChild(createHpBar(tile));
+
     return el;
 }
 
 function tileClass(type) {
-    // Чуть дешевле, чем "tile ${type}", и легче патчить
-    // .tile — базовый класс, .t-floor / .t-wall — модификаторы
     return `tile ${type}`;
 }
 
 function makeChild(kind, name) {
     const child = document.createElement('div');
-    // .item.i-sword / .creature.c-orc / .creature.c-player
+
     child.className = `${kind} ${name}`;
     return child;
 }
@@ -931,28 +597,23 @@ function keyOf(x, y) {
     return `${x},${y}`;
 }
 
-// ==== Точечное обновление тайла ====
 function updateTile(x, y) {
     const el = tileCache.get(keyOf(x, y));
     if (!el) return;
-
     const tile = gameMapGlobal[y][x];
 
-    // Обновляем класс плитки только при реальном изменении типа
     const newClass = tileClass(tile.type);
     if (el.className !== newClass) el.className = newClass;
 
-    // Дешевле пересобрать 2-3 детей, чем городить сложный дифф
-    // Но не трогаем сам элемент плитки
-    // Удаляем всех детей:
-    // вместо innerHTML='' используем removeChild в цикле для предсказуемости GC
     while (el.firstChild) el.removeChild(el.firstChild);
 
     if (tile.item) el.appendChild(makeChild('item', tile.item));
     if (tile.creature) el.appendChild(makeChild('creature', tile.creature.type));
+    el.appendChild(createHpBar(tile)); // всегда добавляем полоску
 }
 
-// ==== Движение игрока с батчингом ====
+
+
 let pendingUpdates = []; // массив {x,y} для пачки
 let rAFScheduled = false;
 
@@ -983,37 +644,287 @@ function flushUpdates() {
     rAFScheduled = false;
 }
 
+
 function handleMovement(dx, dy) {
     const now = performance.now();
     if (now - lastMoveTime < MOVE_DELAY) return;
+    if (gameOver) return;
 
-
-    const nx = playerPosition.x + dx;
-    const ny = playerPosition.y + dy;
+    const fromX = playerPosition.x;
+    const fromY = playerPosition.y;
+    const nx = fromX + dx;
+    const ny = fromY + dy;
 
     if (!canMoveTo(nx, ny)) return;
-    lastMoveTime = now;
-    // снимаем существо со старого тайла
-    gameMapGlobal[playerPosition.y][playerPosition.x].creature = null;
-    // ставим игрока на новый
-    gameMapGlobal[ny][nx].creature = {
-        type: 'player',
-        health: 100,
-        attack: 10
-    };
 
-    // Обновляем только два тайла, но через батч, чтобы сгладить серию ходов
-    scheduleUpdate(playerPosition.x, playerPosition.y);
+    // сохраняем объект игрока, чтобы не терять статы
+    const playerObj = gameMapGlobal[fromY][fromX].creature;
+
+    // снять со старого
+    gameMapGlobal[fromY][fromX].creature = null;
+    // поставить на новый
+    gameMapGlobal[ny][nx].creature = playerObj;
+
+    // батчим минимальные апдейты
+    scheduleUpdate(fromX, fromY);
     scheduleUpdate(nx, ny);
 
     playerPosition = { x: nx, y: ny };
+    lastMoveTime = now;
+
+    // подбор предметов под ногами
+    processPlayerPickup();
+    renderHUD();
+
 }
+
 
 function canMoveTo(x, y) {
     if (x < 0 || x >= COLUMNS || y < 0 || y >= ROWS) return false;
     const tile = gameMapGlobal[y][x];
     // проходим только по полу и если никого нет
     return tile.type === 'floor' && !tile.creature;
+}
+
+// --- Combat & Items ---
+const PLAYER_MAX_HEALTH = 100;
+const HEAL_AMOUNT = 25;   // сколько лечит зелье
+const SWORD_BONUS = 5;    // разовый бонус к удару за меч
+
+function isInside(x, y) {
+    return x >= 0 && x < COLUMNS && y >= 0 && y < ROWS;
+}
+function neighbors4(x, y) {
+    return [
+        { x, y: y - 1 },
+        { x, y: y + 1 },
+        { x: x - 1, y },
+        { x: x + 1, y },
+    ].filter(p => isInside(p.x, p.y));
+}
+function getEnemiesPositions() {
+    const res = [];
+    for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLUMNS; x++) {
+            const c = gameMapGlobal[y][x].creature;
+            if (c?.type === CREATURE_TYPES.ENEMY) res.push({ x, y });
+        }
+    }
+    return res;
+}
+
+function processPlayerPickup() {
+    const { x, y } = playerPosition;
+    const tile = gameMapGlobal[y][x];
+    const player = tile.creature; // уже стоит на тайле
+
+    if (!player) return;
+
+    if (tile.item === ITEM_TYPES.HEALTH) {
+        player.health = Math.min(PLAYER_MAX_HEALTH, player.health + HEAL_AMOUNT);
+        tile.item = null;
+        scheduleUpdate(x, y);
+        // console.log(`Лечимся на ${HEAL_AMOUNT}. HP=${player.health}`);
+    } else if (tile.item === ITEM_TYPES.SWORD) {
+        player.attack += SWORD_BONUS;
+        tile.item = null;
+        scheduleUpdate(x, y);
+        // console.log(`Подняли меч. ATK=${player.attack}`);
+    }
+    renderHUD();
+}
+
+let gameOver = false;
+
+const ENEMY_TICK_MS = 800; // частота шага врагов в мс
+let enemyTimer = null;
+let enemyStepping = false; // защита от наложений тиков
+function startEnemyAI() {
+    stopEnemyAI();
+    enemyTimer = setInterval(() => {
+        if (!gameOver) enemyStep();
+    }, ENEMY_TICK_MS);
+
+    // На всякий — пауза, если вкладка скрыта
+    //   document.addEventListener('visibilitychange', () => {
+    //     if (document.hidden) stopEnemyAI();
+    //     else if (!gameOver) startEnemyAI();
+    //   }, { once: true });
+}
+
+function stopEnemyAI() {
+    if (enemyTimer) {
+        clearInterval(enemyTimer);
+        enemyTimer = null;
+    }
+}
+function enemyStep() {
+    if (enemyStepping || gameOver) return;
+    enemyStepping = true;
+    try {
+        // === ДВИЖЕНИЕ ===
+        const enemies = getEnemiesPositions();
+        const reserved = new Set();
+        const moved = [];
+        const keyOfPos = (x, y) => `${x},${y}`;
+
+        // Снимок позиции игрока для принятия решений
+        const px = playerPosition?.x, py = playerPosition?.y;
+
+        for (const { x, y } of enemies) {
+            if (gameMapGlobal[y][x].creature?.type !== CREATURE_TYPES.ENEMY) continue;
+
+            // Если враг уже рядом с игроком — не двигаем его в этом тике.
+            // Он останется на месте и укусит в фазе атаки.
+            const adjToPlayer = (typeof px === 'number') && (Math.abs(x - px) + Math.abs(y - py) === 1);
+            if (adjToPlayer) {
+                continue; // ← ключевая строка
+            }
+
+            // Кандидаты на движение (для НЕ-соседних)
+            const candidates = [{ x, y }, ...neighbors4(x, y)];
+
+            if (typeof px === 'number') {
+                // тянемся к игроку, но без строевой подготовки
+                candidates.sort((a, b) => (
+                    (Math.abs(a.x - px) + Math.abs(a.y - py)) - (Math.abs(b.x - px) + Math.abs(b.y - py))
+                ));
+                if (Math.random() < 0.35) candidates.reverse();
+            } else {
+                candidates.sort(() => Math.random() - 0.5);
+            }
+
+            let movedTo = null;
+            for (const d of candidates) {
+                const dest = gameMapGlobal[d.y][d.x];
+                const k = keyOfPos(d.x, d.y);
+                if (dest.type === 'floor' && !dest.creature && !reserved.has(k)) {
+                    movedTo = d;
+                    reserved.add(k);
+                    break;
+                }
+            }
+            if (movedTo) moved.push({ from: { x, y }, to: movedTo });
+        }
+
+
+        // Применяем перемещения
+        for (const m of moved) {
+            const fromTile = gameMapGlobal[m.from.y][m.from.x];
+            const toTile = gameMapGlobal[m.to.y][m.to.x];
+            const enemyObj = fromTile.creature;
+            if (enemyObj?.type === CREATURE_TYPES.ENEMY && !toTile.creature && toTile.type === 'floor') {
+                fromTile.creature = null;
+                toTile.creature = enemyObj;
+                scheduleUpdate(m.from.x, m.from.y);
+                scheduleUpdate(m.to.x, m.to.y);
+            }
+        }
+
+        // === АТАКИ ПОСЛЕ ДВИЖЕНИЯ ===
+        if (!playerPosition) { renderHUD(); return; }
+        const p = playerPosition;
+        const adj = neighbors4(p.x, p.y);
+        let totalDamage = 0;
+        for (const { x, y } of adj) {
+            const c = gameMapGlobal[y][x].creature;
+            if (c?.type === CREATURE_TYPES.ENEMY) totalDamage += c.attack;
+        }
+        if (totalDamage > 0) {
+            const ptile = gameMapGlobal[p.y][p.x];
+            if (ptile?.creature?.type === CREATURE_TYPES.PLAYER) {
+                ptile.creature.health -= totalDamage;
+                scheduleUpdate(p.x, p.y);
+                if (ptile.creature.health <= 0) {
+                    ptile.creature = null;
+                    scheduleUpdate(p.x, p.y);
+                    gameOver = true;
+                    stopEnemyAI();
+                    renderHUD();
+                }
+            }
+        }
+        renderHUD();
+    } finally {
+        enemyStepping = false;
+    }
+}
+
+
+
+function playerAttack() {
+    const now = performance.now();
+    if (now - lastMoveTime < MOVE_DELAY) return;
+    if (gameOver) return;
+
+    const { x, y } = playerPosition;
+    const ptile = gameMapGlobal[y][x];
+    const player = ptile.creature;
+    if (!player || player.type !== CREATURE_TYPES.PLAYER) return;
+
+    let hit = false;
+
+    for (const n of neighbors4(x, y)) {
+        const t = gameMapGlobal[n.y][n.x];
+        const c = t.creature;
+        if (c?.type === CREATURE_TYPES.ENEMY) {
+            c.health -= player.attack;
+            hit = true;
+            if (c.health <= 0) {
+                t.creature = null; // враг умер
+            }
+            scheduleUpdate(n.x, n.y);
+        }
+    }
+
+    if (hit) {
+        lastMoveTime = now;
+        renderHUD();
+    }
+}
+
+
+function createHpBar(tile) {
+    const bar = document.createElement('div');
+    bar.className = 'hpbar';
+    const fill = document.createElement('div');
+    fill.className = 'hpbar-fill';
+    // стартовая ширина
+    const c = tile.creature;
+    const pct = c ? Math.max(0, Math.min(100, Math.round((c.health / c.maxHealth) * 100))) : 0;
+    fill.style.width = c ? pct + '%' : '0%';
+    bar.appendChild(fill);
+    return bar;
+}
+
+
+function renderHUD() {
+    const hpFill = document.getElementById('hudHp');
+    const hpText = document.getElementById('hudHpText');
+    const atkText = document.getElementById('hudAtk');
+    const hud = document.querySelector('.hud');
+
+    let hp = 0;
+    let maxHp = PLAYER_MAX_HEALTH || 100;
+    let atk = 0;
+
+    if (playerPosition) {
+        const tile = gameMapGlobal[playerPosition.y]?.[playerPosition.x];
+        const p = tile?.creature;
+        if (p?.type === CREATURE_TYPES.PLAYER) {
+            hp = Math.max(0, p.health ?? 0);
+            maxHp = p.maxHealth ?? maxHp;
+            atk = p.attack ?? 0;
+        }
+    }
+
+    const pct = Math.max(0, Math.min(100, Math.round((hp / maxHp) * 100)));
+    if (hpFill) hpFill.style.width = pct + '%';
+    if (hpText) hpText.textContent = `${hp}/${maxHp}`;
+    if (atkText) atkText.textContent = atk;
+
+    // косметика "мертв"
+    hud?.classList.toggle('hud--dead', hp <= 0);
 }
 
 // ==== Инициализация игры ====
@@ -1041,16 +952,22 @@ function initGame() {
     placeItems(gameMap, ITEM_TYPES.SWORD, SWORD_COUNT);
 
     renderMap(gameMap);
+    renderHUD();
+    startEnemyAI();
 }
 
-// ==== События клавиатуры на самом поле ====
 fieldElement.addEventListener('keydown', (e) => {
-    // if (e.repeat) return;
+    if (e.code === 'Space') {
+        e.preventDefault();
+        playerAttack();
+        return;
+    }
     const delta = keyToDelta(e);
     if (!delta) return;
     e.preventDefault();
     handleMovement(delta.dx, delta.dy);
 });
+
 
 // Автофокус при клике по полю
 fieldElement.addEventListener('mousedown', () => fieldElement.focus());

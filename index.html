@@ -1,15 +1,33 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чаплинская</title>
     <link rel="stylesheet" href="style.css">
-    <script src="jquery-3.7.1.min.js" ></script>
+    <script src="jquery-3.7.1.min.js"></script>
 </head>
+
 <body>
     <div class="field"></div>
-    <script src="game.js"></script>
-    
+    <div class="hud" aria-live="polite">
+        <div class="hud-row">
+            <span class="hud-label">HP</span>
+            <div class="hud-bar">
+                <div class="hud-fill" id="hudHp"></div>
+            </div>
+            <span id="hudHpText">100/100</span>
+        </div>
+        <div class="hud-row">
+            <span class="hud-label">ATK</span>
+            <span id="hudAtk">10</span>
+        </div>
+    </div>
+
+    <!-- <script src="game.js"></script> -->
+     <script type="module" src="/js/main.js"></script>
+
 </body>
+
 </html>

@@ -1,177 +1,177 @@
+/* ===== Базовая раскладка ===== */
 body {
-    display: flex;
-    justify-content: center;
-    /* background-color: #222;
-    color: white; */
-    /* min-height: 100vh; */
-    margin: 0;
-    padding: 20px;
-    border: 1px solid red;
-    --tile-size: 32px;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: 20px;
+  border: 1px solid red;
+  --tile-size: 32px;          /* размер тайла */
+  --frame: 64px;              /* размер кадра на листе */
+  --cols: 6;
+  --rows: 4;
+  --trim: 16px; 
 }
 
 .field {
-    display: grid;
-    grid-template-columns: repeat(40, var(--tile-size));
-    grid-template-rows: repeat(24, var(--tile-size));
-    border: 3px solid #2917ed;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(40, var(--tile-size));
+  grid-template-rows: repeat(24, var(--tile-size));
+  border: 3px solid #2917ed;
+  margin-top: 20px;
 }
 
+/* ===== Тайлы ===== */
 .tile {
-    position: relative;
-    /* Это важно! */
-    width: var(--tile-size);
-    height: var(--tile-size);
-    box-sizing: border-box;
-    contain: content;
-
-    contain: paint;
-    /* не провоцируем repaint вокруг */
-    will-change: contents;
-    /* мягкий намёк композитору */
-
-    /* background-image: url('./sprites/Walk1.png');  */
-    background-repeat: no-repeat;
+  position: relative;
+  width: var(--tile-size);
+  height: var(--tile-size);
+  box-sizing: border-box;
+  contain: paint;             /* не провоцируем repaint вокруг */
+  will-change: contents;
+  background-repeat: no-repeat;
 }
 
-/* Стили для разных типов тайлов (задаем смещение фона) */
+/* Фон/отладка типов тайлов */
 .tile.floor {
-    background-position: -0px -0px;
-    /* Пример для пола */
+  background-color: #4d5f95;
+  box-shadow:
+    inset 2px 2px 3px rgba(0, 0, 0, 0.2),
+    -2px -2px 5px rgba(187, 190, 236, 0.2),
+    inset 2px 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .tile.wall {
-    background-position: -0 -0;
-    /* Пример для стены */
+  background-color: #555;
+  box-shadow:
+    -2px -2px 3px rgba(5, 36, 9, 0.259),
+    inset 2px 2px 5px rgba(132, 146, 132, 0.2),
+    -2px -2px 8px rgba(5, 36, 9, 0.259);
 }
 
-/* Добавим немного стилей для отладки, если картинка не загрузится */
-.tile.floor {
-    background-color: #4d5f95;
-    box-shadow:
-        inset 2px 2px 3px rgba(0, 0, 0, 0.2),
-        -2px -2px 5px rgba(187, 190, 236, 0.2),
-        inset 2px 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.tile.wall {
-    background-color: #555;
-    box-shadow:
-        -2px -2px 3px rgba(5, 36, 9, 0.259),
-        inset 2px 2px 5px rgba(132, 146, 132, 0.2),
-        -2px -2px 8px rgba(5, 36, 9, 0.259);
-}
-
-
-
-/* Или используйте emoji или изображения */
-.health::before {
-    content: '❤️';
-}
-
-.sword::before {
-    content: '⚔️';
-}
-
-.enemy::before {
-    content: '💀';
-}
-
-.player::before {
-    content: '⭐    ';
-}
-
+/* ===== Сущности и предметы (слои) ===== */
 .creature,
 .item {
-    position: absolute;
-    pointer-events: none;
-    /* меньше hit-testing */
-    backface-visibility: hidden;
-    /* холодный привет композитору */
-    transform: translateZ(0);
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    /* отдельный слой под движущиеся штуки */
+  position: absolute;
+  pointer-events: none;       /* меньше hit-testing */
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 25;                /* над фоном тайла */
 }
 
-/* Стили сущностей */
-/* .creature {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10;
-    animation: float 2s infinite ease-in-out;
+/* Предметы (эмодзи) */
+.health::before { content: '❤️'; }
+.sword::before  { content: '⚔️'; }
+.enemy::before  { content: '💀'; }
+
+/* Игрок — эмодзи отключить, чтобы не перекрывал спрайт */
+.player::before { content: none !important; }
+
+/* Слой игрока чуть выше остальных существ (на случай наложений) */
+.creature.player { z-index: 26; }
+
+/* ===== HUD ===== */
+.hud {
+  position: fixed;
+  top: 10px; left: 10px; right: 10px;
+  max-width: 220px;
+  padding: 10px 12px;
+  background: rgba(20, 20, 30, 0.65);
+  color: #fff;
+  font: 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+}
+.hud-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 8px; align-items: center; margin-top: 6px; }
+.hud-row:first-child { margin-top: 0; }
+.hud-label { opacity: 0.85; }
+.hud-bar { height: 10px; background: #333; border-radius: 6px; overflow: hidden; }
+.hud-fill { height: 100%; width: 100%; background: #00ff04; }
+.hud.hud--dead { opacity: 0.75; filter: grayscale(0.2); }
+
+/* ===== Полоски HP над существами ===== */
+.hpbar {
+  position: absolute;
+  left: 2px; right: 2px;
+  top: 2px; height: 5px;
+  background: rgba(0,0,0,0.35);
+  border-radius: 4px;
+  overflow: hidden;
+  z-index: 30;
+  pointer-events: none;
+}
+.hpbar-fill {
+  height: 100%;
+  width: 100%;
+  background: #3bd16f;        /* зелёный */
+  transition: width 120ms linear;
+}
+.tile.wall .hpbar { display: none; }                          /* на стенах нечего рисовать */
+.creature.enemy ~ .hpbar .hpbar-fill { background: #ff7a57; } /* враги — красно-жёлтый */
+.tile .hpbar { display: none; }                               /* по умолчанию скрыто */
+.tile .creature ~ .hpbar { display: block; }                  /* если есть существо — показываем */
+
+/* ===== ИГРОК: спрайт 6 колонок × 4 строки =====
+   Файл: /sprites/Swordsman_lvl3_Walk_with_shadow.png
+   background-size: 600% 400% → ширина всей картинки = 6 тайлов, высота = 4 тайла.
+   Один «шаг» по Y между рядами = 100% / 3 (а не 100%).
+*/
+.creature.player{
+  background-image: url('Tilesets/With_shadow/Swordsman_lvl3_Walk_with_shadow.png'); /* проверь путь */
+  background-repeat: no-repeat;
+  background-size: 600% 400%;
+  /* image-rendering: pixelated; */
+    
+  /* Масштаб героя относительно тайла. 1 — ровно в тайл, 1.5–2 — покрупнее */
+  /* transform: translateZ(0) scale(var(--hero-scale, 1));
+  transform-origin: bottom center; */
+
+  /* Начальное положение: первый кадр, первый ряд */
+  /* background-position: -32px -16px; */
+}.creature.player {
+  position: relative;   /* чтобы ::after можно было позиционировать */
+  background: none;     /* не рисуем фон на самом контейнере */
 }
 
-.creature.player {
-    z-index: 20;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+/* САМ спрайт */
+.creature.player::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* рисуем кадр натурального размера 64×64 */
+  width: var(--frame);
+  height: var(--frame);
+  transform: translate(-50%, -50%);
+  image-rendering: pixelated;
+
+  /* твой лист 384×256 = 6×4 по 64px */
+  background-image: url('Tilesets/With_shadow/Swordsman_lvl3_Walk_with_shadow.png');
+  background-repeat: no-repeat;
+  background-size: calc(var(--cols) * var(--frame)) calc(var(--rows) * var(--frame));
+  background-position: 0 0; /* первый кадр, первый ряд */
+
+  /* отрезаем поля по 16px → видимые 32×32 по центру */
+  clip-path: inset(var(--trim));
 }
 
-.creature.enemy {
-    z-index: 15;
-    animation: pulse 1.5s infinite ease-in-out;
+/* Направления: двигаем ПО РЯДАМ на кратные 64px */
+.player.dir-down::after  { background-position-y:    0px; }
+.player.dir-left::after  { background-position-y:  -64px; }
+.player.dir-right::after { background-position-y: -128px; }
+.player.dir-up::after    { background-position-y: -192px; }
+
+/* Ходьба: 6 кадров по X (0 → -320) */
+/* @keyframes walk-6 {
+  from { background-position-x:   0px; }
+  to   { background-position-x: -320px; }
 }
-     */
+.player.walking::after { animation: walk-6 var(--walk-duration, 320ms) steps(6) infinite; } */
 
-/* Стили предметов */
-.creature.player {
-    z-index: 20;
-    /* text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); */
-}
-.item {
-    /* position: absolute; */
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 5;
-    font-size: 16px;
-}
-
-.item.health {
-    color: #ff4444;
-    animation: heartbeat 1.5s infinite ease-in-out;
-}
-
-.item.sword {
-    color: #aaaaff;
-    animation: shine 2s infinite ease-in-out;
-}
-
-/* Анимации */
-/* @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-2px); }
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.1); opacity: 0.8; }
-}
-
-@keyframes heartbeat {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-}
-
-@keyframes shine {
-    0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.5); }
-} */
-
-/* .tile:has(.player) {
-    box-shadow: 0 0 10px gold;
-} */
-
-/* .field:focus {
-    outline: none;
-} */
+/* Стоим — первый кадр по X */
+.creature.player:not(.walking)::after { background-position-x: 0px; }
