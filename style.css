@@ -1,0 +1,55 @@
+body {
+    display: flex;
+    justify-content: center;
+    /* background-color: #222;
+    color: white; */
+    /* min-height: 100vh; */
+    margin: 0;
+    padding: 20px;
+    border: 1px solid red;
+    --tile-size: 32px;
+}
+
+.field {
+    display: grid;
+    grid-template-columns: repeat(40, var(--tile-size));
+    grid-template-rows: repeat(24, var(--tile-size));
+    border: 3px solid #2917ed;
+    margin-top: 20px;
+}
+
+.tile {
+    width: var(--tile-size);
+    height: var(--tile-size);
+    box-sizing: border-box;
+    /* background-image: url('./sprites/Walk1.png');  */
+    background-repeat: no-repeat;
+}
+
+/* Стили для разных типов тайлов (задаем смещение фона) */
+.tile.floor {
+    background-position: -0px -0px;
+    /* Пример для пола */
+}
+
+.tile.wall {
+    background-position: -0 -0;
+    /* Пример для стены */
+}
+
+/* Добавим немного стилей для отладки, если картинка не загрузится */
+.tile.floor {
+    background-color: #4d5f95;
+    box-shadow:
+        inset 2px 2px 3px rgba(0, 0, 0, 0.2),
+         -2px -2px 5px rgba(187, 190, 236, 0.2),
+        inset 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.tile.wall {
+    background-color: #555;
+    box-shadow:
+         -2px -2px 3px rgba(5, 36, 9, 0.259),
+        inset 2px 2px 5px rgba(132, 146, 132, 0.2),
+         -2px -2px 8px rgba(5, 36, 9, 0.259);
+}
