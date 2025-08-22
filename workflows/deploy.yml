@@ -1,36 +1,26 @@
 name: Deploy to GitHub Pages
-
 on:
-  push:
-    branches: [main]
-
+  push: { branches: [ main ] }
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '18'
-        
-    - name: Install dependencies (если есть package.json)
-      run: npm install
-      
-    - name: Build project
-      run: |
-        # Создаем единый файл из всех JS модулей
-        echo "// Объединенный файл" > build.js
-        cat js/*.js >> build.js
-        # Копируем HTML и меняем ссылку на скрипт
-        sed 's/<script type="module" src="js\/main.js"><\/script>/<script src="build.js"><\/script>/' index.html > build.html
-        
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./
-        publish_branch: gh-pages
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: . }
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: { name: github-pages, url: ${{ steps.deployment.outputs.page_url }} }
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
