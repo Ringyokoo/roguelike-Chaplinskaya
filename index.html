@@ -10,7 +10,9 @@
 </head>
 
 <body>
-    <div class="field"></div>
+    <div class="viewport">
+        <div class="field"></div>
+    </div>
     <div class="hud" aria-live="polite">
         <div class="hud-row">
             <span class="hud-label">HP</span>
@@ -24,9 +26,12 @@
             <span id="hudAtk">10</span>
         </div>
     </div>
-
+    <dialog id="infoDiolog">
+        <img src="Tilesets/gameOverSmall.png" alt="gameOver">
+        <p>Для перезагрузки нажмите R или F5</p>
+    </dialog>
     <!-- <script src="game.js"></script> -->
-     <script type="module" src="/js/main.js"></script>
+    <script type="module" src="/js/main.js"></script>
 
 </body>
 

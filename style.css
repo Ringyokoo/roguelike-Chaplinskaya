@@ -1,177 +1,353 @@
-/* ===== Базовая раскладка ===== */
+html,
 body {
-  display: flex;
-  justify-content: center;
-  margin: 0;
-  padding: 20px;
-  border: 1px solid red;
-  --tile-size: 32px;          /* размер тайла */
-  --frame: 64px;              /* размер кадра на листе */
-  --cols: 6;
-  --rows: 4;
-  --trim: 16px; 
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+
+    --tile-size: 32px;
+    /* размер тайла */
+    --frame: 64px;
+    /* физический размер кадра */
+    --cols: 6;
+    --rows: 4;
+
+    /* спрайт атаки */
+    --a-cols: 8;
+    --a-duration: 360ms;
+
+    --h-cols: 5;
+
+    --e-cols: 11;
+}
+
+/*  Камера  */
+.viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;/
 }
 
 .field {
-  display: grid;
-  grid-template-columns: repeat(40, var(--tile-size));
-  grid-template-rows: repeat(24, var(--tile-size));
-  border: 3px solid #2917ed;
-  margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(40, var(--tile-size));
+    grid-template-rows: repeat(24, var(--tile-size));
+    will-change: transform;
+    margin: 0;
+    border: 0;
 }
 
-/* ===== Тайлы ===== */
+.field:focus {
+    outline: none;
+}
+
 .tile {
-  position: relative;
-  width: var(--tile-size);
-  height: var(--tile-size);
-  box-sizing: border-box;
-  contain: paint;             /* не провоцируем repaint вокруг */
-  will-change: contents;
-  background-repeat: no-repeat;
+    position: relative;
+    width: var(--tile-size);
+    height: var(--tile-size);
+    box-sizing: border-box;
+    contain: paint;
+    will-change: contents;
+    background-repeat: no-repeat;
 }
 
-/* Фон/отладка типов тайлов */
 .tile.floor {
-  background-color: #4d5f95;
-  box-shadow:
-    inset 2px 2px 3px rgba(0, 0, 0, 0.2),
-    -2px -2px 5px rgba(187, 190, 236, 0.2),
-    inset 2px 2px 5px rgba(0, 0, 0, 0.2);
+    background-image: url('Tilesets/FieldsTile_01.png');
+    /* background-color: #4d5f95;
+    box-shadow: inset 2px 2px 3px rgba(0, 0, 0, 0.2), -2px -2px 5px rgba(187, 190, 236, 0.2), inset 2px 2px 5px rgba(0, 0, 0, 0.2); */
 }
 
 .tile.wall {
-  background-color: #555;
-  box-shadow:
-    -2px -2px 3px rgba(5, 36, 9, 0.259),
-    inset 2px 2px 5px rgba(132, 146, 132, 0.2),
-    -2px -2px 8px rgba(5, 36, 9, 0.259);
+    color: #B6B2CF;
+    /* background-image: url('Tilesets/Wall.png'); */
+    background-color: #555;
+    box-shadow: -2px -2px 3px rgba(19, 2, 31, 0.259), inset 2px 2px 5px rgba(253, 253, 253, 0.2), -2px -2px 8px rgba(19, 2, 31, 0.259);
 }
 
-/* ===== Сущности и предметы (слои) ===== */
 .creature,
 .item {
-  position: absolute;
-  pointer-events: none;       /* меньше hit-testing */
-  backface-visibility: hidden;
-  transform: translateZ(0);
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 25;                /* над фоном тайла */
+    position: absolute;
+    pointer-events: none;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
 }
 
 /* Предметы (эмодзи) */
-.health::before { content: '❤️'; }
-.sword::before  { content: '⚔️'; }
-.enemy::before  { content: '💀'; }
+/* .health::before {
+    content: '❤️';
+   
+} */
+.health {
+    left: 4px;
+    top: 4px;
+    background-image: url('Tilesets/elixir.png');
+    background-repeat: no-repeat;
+}
 
-/* Игрок — эмодзи отключить, чтобы не перекрывал спрайт */
-.player::before { content: none !important; }
+/* .sword::before {
+    content: '⚔️';
+} */
 
-/* Слой игрока чуть выше остальных существ (на случай наложений) */
-.creature.player { z-index: 26; }
+.sword {
+    left: 4px;
+    top: 4px;
+    background-image: url('Tilesets/sword16.png');
+    background-repeat: no-repeat;
+}
 
-/* ===== HUD ===== */
+/* .enemy::before {
+    content: '💀';
+} */
+
+.creature.player {
+    z-index: 26;
+}
+
 .hud {
-  position: fixed;
-  top: 10px; left: 10px; right: 10px;
-  max-width: 220px;
-  padding: 10px 12px;
-  background: rgba(20, 20, 30, 0.65);
-  color: #fff;
-  font: 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  border-radius: 10px;
-  backdrop-filter: blur(6px);
-  z-index: 9999;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    max-width: 320px;
+    padding: 10px 12px;
+    background: #584c6db4;
+    color: #fff;
+    font: 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    border-radius: 5px;
+    backdrop-filter: blur(6px);
+    z-index: 9999;
 }
-.hud-row { display: grid; grid-template-columns: 36px 1fr auto; gap: 8px; align-items: center; margin-top: 6px; }
-.hud-row:first-child { margin-top: 0; }
-.hud-label { opacity: 0.85; }
-.hud-bar { height: 10px; background: #333; border-radius: 6px; overflow: hidden; }
-.hud-fill { height: 100%; width: 100%; background: #00ff04; }
-.hud.hud--dead { opacity: 0.75; filter: grayscale(0.2); }
 
-/* ===== Полоски HP над существами ===== */
+.hud-row {
+    display: grid;
+    grid-template-columns: 36px 1fr auto;
+    gap: 8px;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.hud-row:first-child {
+    margin-top: 0;
+}
+
+.hud-label {
+    opacity: 0.85;
+}
+
+.hud-bar {
+    height: 10px;
+    background: #333;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.hud-fill {
+    height: 100%;
+    width: 100%;
+    background: #00ff04;
+    transition: width 360ms linear;
+}
+
+.hud.hud--dead {
+    opacity: 0.75;
+    filter: grayscale(0.2);
+}
+
+/*  Полоски HP над существами  */
 .hpbar {
-  position: absolute;
-  left: 2px; right: 2px;
-  top: 2px; height: 5px;
-  background: rgba(0,0,0,0.35);
-  border-radius: 4px;
-  overflow: hidden;
-  z-index: 30;
-  pointer-events: none;
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    top: 0px;
+    height: 5px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 30;
+    pointer-events: none;
 }
+
 .hpbar-fill {
-  height: 100%;
-  width: 100%;
-  background: #3bd16f;        /* зелёный */
-  transition: width 120ms linear;
-}
-.tile.wall .hpbar { display: none; }                          /* на стенах нечего рисовать */
-.creature.enemy ~ .hpbar .hpbar-fill { background: #ff7a57; } /* враги — красно-жёлтый */
-.tile .hpbar { display: none; }                               /* по умолчанию скрыто */
-.tile .creature ~ .hpbar { display: block; }                  /* если есть существо — показываем */
-
-/* ===== ИГРОК: спрайт 6 колонок × 4 строки =====
-   Файл: /sprites/Swordsman_lvl3_Walk_with_shadow.png
-   background-size: 600% 400% → ширина всей картинки = 6 тайлов, высота = 4 тайла.
-   Один «шаг» по Y между рядами = 100% / 3 (а не 100%).
-*/
-.creature.player{
-  background-image: url('Tilesets/With_shadow/Swordsman_lvl3_Walk_with_shadow.png'); /* проверь путь */
-  background-repeat: no-repeat;
-  background-size: 600% 400%;
-  /* image-rendering: pixelated; */
-    
-  /* Масштаб героя относительно тайла. 1 — ровно в тайл, 1.5–2 — покрупнее */
-  /* transform: translateZ(0) scale(var(--hero-scale, 1));
-  transform-origin: bottom center; */
-
-  /* Начальное положение: первый кадр, первый ряд */
-  /* background-position: -32px -16px; */
-}.creature.player {
-  position: relative;   /* чтобы ::after можно было позиционировать */
-  background: none;     /* не рисуем фон на самом контейнере */
+    height: 100%;
+    width: 100%;
+    background: #3bd16f;
+    transition: width 120ms linear;
 }
 
-/* САМ спрайт */
+.tile.wall .hpbar {
+    display: none;
+}
+
+.creature.enemy~.hpbar .hpbar-fill {
+    background: #ff7a57;
+}
+
+
+.tile .hpbar {
+    display: none;
+}
+
+/* по умолчанию скрыто */
+.tile .creature~.hpbar {
+    display: block;
+}
+
+
 .creature.player::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  /* рисуем кадр натурального размера 64×64 */
-  width: var(--frame);
-  height: var(--frame);
-  transform: translate(-50%, -50%);
-  image-rendering: pixelated;
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--frame);
+    /* рисуем кадр натурального размера 64×64 */
+    height: var(--frame);
+    transform: translate(-50%, -50%);
+    image-rendering: pixelated;
+    background-image: url('Tilesets/With_shadow/Swordsman_lvl3_Walk_with_shadow.png');
+    background-repeat: no-repeat;
+    background-size: calc(var(--cols) * var(--frame)) calc(var(--rows) * var(--frame));
+    background-position: 0 0;
+    clip-path: inset(var(--trim));
+    /* отрезаем поля по 16px → видимые 32×32 по центру */
 
-  /* твой лист 384×256 = 6×4 по 64px */
-  background-image: url('Tilesets/With_shadow/Swordsman_lvl3_Walk_with_shadow.png');
-  background-repeat: no-repeat;
-  background-size: calc(var(--cols) * var(--frame)) calc(var(--rows) * var(--frame));
-  background-position: 0 0; /* первый кадр, первый ряд */
-
-  /* отрезаем поля по 16px → видимые 32×32 по центру */
-  clip-path: inset(var(--trim));
 }
 
-/* Направления: двигаем ПО РЯДАМ на кратные 64px */
-.player.dir-down::after  { background-position-y:    0px; }
-.player.dir-left::after  { background-position-y:  -64px; }
-.player.dir-right::after { background-position-y: -128px; }
-.player.dir-up::after    { background-position-y: -192px; }
 
-/* Ходьба: 6 кадров по X (0 → -320) */
-/* @keyframes walk-6 {
-  from { background-position-x:   0px; }
-  to   { background-position-x: -320px; }
+.player.dir-down::after {
+    background-position-y: 0px;
 }
-.player.walking::after { animation: walk-6 var(--walk-duration, 320ms) steps(6) infinite; } */
 
-/* Стоим — первый кадр по X */
-.creature.player:not(.walking)::after { background-position-x: 0px; }
+.player.dir-left::after {
+    background-position-y: -64px;
+}
+
+.player.dir-right::after {
+    background-position-y: -128px;
+}
+
+.player.dir-up::after {
+    background-position-y: -192px;
+}
+
+
+@keyframes attack {
+    from {
+        background-position-x: 0px;
+    }
+
+    to {
+        background-position-x: calc(-1 * var(--a-cols) * var(--frame));
+    }
+}
+
+.player.attack::after {
+    background-image: url('Tilesets/With_shadow/Swordsman_lvl3_attack_with_shadow.png');
+    background-position-x: 0px;
+    background-size: calc(var(--a-cols) * var(--frame)) calc(var(--rows) * var(--frame));
+    animation: attack var(--a-duration) steps(var(--a-cols)) 1;
+}
+
+@keyframes hurt {
+    from {
+        background-position-x: 0px;
+    }
+
+    to {
+        background-position-x: calc(-1 * var(--h-cols) * var(--frame));
+    }
+}
+
+.player.hurt::after {
+    background-image: url('Tilesets/With_shadow/Swordsman_lvl3_Hurt_with_shadow.png');
+    background-position-x: 0px;
+    background-size: calc(var(--h-cols) * var(--frame)) calc(var(--rows) * var(--frame));
+    animation: hurt 240ms steps(var(--h-cols)) 1;
+    ;
+}
+
+
+
+.creature.player:not(.attack)::after {
+    background-position-x: 0px;
+}
+
+.creature.enemy::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--frame);
+    height: var(--frame);
+    transform: translate(-50%, -50%);
+    image-rendering: pixelated;
+    background-image: url('Tilesets/Slime2_Walk_full.png');
+    background-repeat: no-repeat;
+    background-size: calc(1 * var(--frame)) calc(var(--rows) * var(--frame));
+    background-position: 0 0;
+    clip-path: inset(var(--trim));
+}
+
+.enemy.attack.dir-down::after {
+    background-position-y: 0px;
+}
+
+.enemy.attack.dir-up::after {
+    background-position-y: -64px;
+}
+
+.enemy.attack.dir-left::after {
+    background-position-y: -128px;
+}
+
+.enemy.attack.dir-right::after {
+    background-position-y: -192px;
+}
+
+@keyframes attackEnemy {
+    from {
+        background-position-x: 0px;
+    }
+
+    to {
+        background-position-x: calc(-1 * var(--e-cols) * var(--frame));
+    }
+}
+
+.enemy.attack::after {
+    background-image: url('Tilesets/slime/Slime2_Attack_full.png');
+    background-position-x: 0px;
+    background-size: calc(var(--e-cols) * var(--frame)) calc(var(--rows) * var(--frame));
+    animation: attackEnemy var(--a-duration) steps(var(--e-cols)) 1;
+}
+
+.creature.enemy:not(.attack)::after {
+    background-position-x: 0;
+}
+
+#infoDiolog {
+    top: 50%;
+    transform: translate(0%, -50%);
+    border: none;
+    text-align: center;
+    color: #ffffff;
+    background: #584c6d7a;
+    color: #fff;
+    font: 14px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    border-radius: 5px;
+    backdrop-filter: blur(6px);
+    border: none;
+}
+
+#infoDiolog:focus {
+    outline: none;
+}

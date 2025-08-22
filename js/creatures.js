@@ -1,8 +1,8 @@
 import { state } from './state.js';
 import {
-    SIDE_INDENT, COLUMNS, ROWS, PLAYER_MAX_HEALTH, CREATURE_TYPES
+    SIDE_INDENT, COLUMNS, ROWS, PLAYER_MAX_HEALTH, CREATURE_TYPES,
+    ENEMY_ATTACK, ENEMY_HEALTH, ENEMY_MAX_HEALTH
 } from './config.js';
-// import { CREATURE_TYPES } from './enums.js';
 import { randomInteger } from './utils.js';
 
 export function placePlayer(map) {
@@ -30,8 +30,12 @@ export function placeEnemies(map, count) {
         if (cell.type === 'floor' && !cell.item && !cell.creature && dist > 5) {
             const enemy = {
                 type: CREATURE_TYPES.ENEMY,
-                health: 30, maxHealth: 30, attack: 20,
+                health: ENEMY_HEALTH,
+                maxHealth: ENEMY_MAX_HEALTH,
+                attack: ENEMY_ATTACK,
                 id: `enemy_${Date.now()}_${Math.random()}`,
+                dir: 'down',
+                attacking: false,
             };
             cell.creature = enemy;
             state.enemies.set(enemy.id, { x, y });

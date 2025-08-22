@@ -9,8 +9,8 @@ function makeChild(kind, name) {
     return div;
 }
 
-// Внешний вид игрока: только запись в DOM, источник истины — state
-export function applyPlayerAppearance(dir = state.playerDir, walking = state.playerWalking) {
+// Внешний вид игрока
+export function applyPlayerAppearance(dir = state.playerDir) {
     const pos = state.playerPosition;
     if (!pos) return;
     const key = keyOf(pos.x, pos.y);
@@ -19,7 +19,24 @@ export function applyPlayerAppearance(dir = state.playerDir, walking = state.pla
     const parts = state.tileParts.get(key);
     if (!parts || !parts.creatureEl) return;
     const cls = ['creature', 'player', `dir-${dir}`];
-    if (walking) cls.push('walking');
+    parts.creatureEl.className = cls.join(' ');
+    if (state.playerAttacking) cls.push('attack');   // переключаемся на лист атаки
+    parts.creatureEl.className = cls.join(' ');
+    if (state.playerHurt) cls.push('hurt');
+    parts.creatureEl.className = cls.join(' ');
+}
+
+export function applyEnemyAppearance(x, y) {
+    const key = keyOf(x, y);
+    const el = state.tileCache.get(key);
+    const parts = state.tileParts.get(key);
+    if (!el || !parts?.creatureEl) return;
+
+    const c = state.gameMap[y][x]?.creature;
+    if (!c || c.type !== 'enemy') return;
+
+    const cls = ['creature', 'enemy', `dir-${c.dir}`];
+    if (c.attacking) cls.push('attack');
     parts.creatureEl.className = cls.join(' ');
 }
 
@@ -53,11 +70,11 @@ export function createTileElement(x, y, tile) {
         parts.hpBar = bar; parts.hpFill = bar.firstChild;
         el.appendChild(bar);
         // Если это игрок — сразу применим внешний вид из state
-        if (tile.creature.type === 'player') {
-            const cls = ['creature', 'player', `dir-${state.playerDir}`];
-            if (state.playerWalking) cls.push('walking');
-            parts.creatureEl.className = cls.join(' ');
-        }
+        // if (tile.creature.type === 'player') {
+        // const cls = ['creature', 'player', `dir-${state.playerDir}`];
+        // if (state.playerWalking) cls.push('walking');
+        // parts.creatureEl.className = cls.join(' ');
+        // }
     }
     state.tileParts.set(key, parts);
     return el;
@@ -89,8 +106,9 @@ export function updateTile(x, y) {
         const hpPct = Math.max(0, Math.min(100, Math.round((tile.creature.health / tile.creature.maxHealth) * 100)));
         if (!parts.hpBar) { const bar = createHpBar(tile); parts.hpBar = bar; parts.hpFill = bar.firstChild; el.appendChild(bar); }
         else if (parts.hpFill) { parts.hpFill.style.width = hpPct + '%'; }
-        // если это игрок — обновим классы под направление/ходьбу
+        // если это игрок — обновим классы под направление
         if (type === 'player') applyPlayerAppearance();
+        if (type === 'enemy') applyEnemyAppearance(x,y);
     } else {
         if (parts.creatureEl) { parts.creatureEl.remove(); parts.creatureEl = null; }
         if (parts.hpBar) { parts.hpBar.remove(); parts.hpBar = null; parts.hpFill = null; }
@@ -163,18 +181,3 @@ export function renderHUD() {
     hud?.classList.toggle('hud--dead', hp <= 0);
 }
 
-// export function applyPlayerAppearance(dir, walking) {
-//   const { x, y } = state.playerPosition || {};
-//   if (x == null) return;
-//   const key = keyOf(x, y);
-//   const el = state.tileCache.get(key);
-//   if (!el) return;
-
-//   // достаем кэш частей
-//   let parts = state.tileParts.get(key);
-//   if (!parts || !parts.creatureEl) return;
-
-//   const cls = ['creature', 'player', `dir-${dir}`];
-//   if (walking) cls.push('walking');
-//   parts.creatureEl.className = cls.join(' ');
-// }

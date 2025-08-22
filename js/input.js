@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { MOVE_DELAY } from './config.js';
 import { scheduleUpdate, renderHUD } from './render.js';
 import { playerAttack } from './combat.js';
-import { applyPlayerAppearance } from './render.js';
+import { updateCameraRaf } from './camera.js';
 
 function isTextInputFocused() {
     const el = document.activeElement;
@@ -66,14 +66,11 @@ export function attachInput(onRestart) {
 
         if (!canMoveTo(nx, ny)) return;
 
-        // Направление для визуала
         const dir =
             delta.dx === 1 ? 'right' :
                 delta.dx === -1 ? 'left' :
                     delta.dy === 1 ? 'down' : 'up';
         state.playerDir = dir;
-        state.playerWalking = true;
-        applyPlayerAppearance(dir, true);
 
         const playerObj = state.gameMap[fromY][fromX].creature;
         state.gameMap[fromY][fromX].creature = null;
@@ -85,16 +82,12 @@ export function attachInput(onRestart) {
         state.playerPosition = { x: nx, y: ny };
         state.lastMoveTime = now;
 
+        updateCameraRaf();
+
         processPlayerPickup();
         renderHUD();
 
-        // Остановим ходьбу после завершения шага
-        setTimeout(() => {
-            state.playerWalking = false;
-            applyPlayerAppearance(state.playerDir, false);
-        }, MOVE_DELAY);
     });
 
-    // Автофокус по клику
-    // field.addEventListener('mousedown', () => field.focus());
+
 }

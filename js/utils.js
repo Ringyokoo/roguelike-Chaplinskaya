@@ -1,4 +1,5 @@
-import { COLUMNS, ROWS } from './config.js';
+import { state } from './state.js';
+import { getEnemiesPositions } from './ai.js';
 
 export const keyOf = (x, y) => `${x},${y}`;
 
@@ -16,15 +17,38 @@ export function getRange(coord, size) {
   return out;
 }
 
-export function isInside(x, y) {
-  return x >= 0 && x < COLUMNS && y >= 0 && y < ROWS;
+function openDialog() {
+  // const d = state.dom.infoDialog;
+  const d = document.getElementById('infoDiolog');
+  if (!d) return;
+
+  if (typeof d.showModal === 'function') {
+    if (!d.open) d.showModal();
+  } else {
+    d.setAttribute('open', '');
+  }
 }
 
-export function neighbors4(x, y) {
-  return [
-    { x, y: y - 1 },
-    { x, y: y + 1 },
-    { x: x - 1, y },
-    { x: x + 1, y },
-  ].filter(p => isInside(p.x, p.y));
+// function countEnemies() {
+//   let n = 0;
+//   const map = state.gameMap;
+//   for (let y = 0; y < map.length; y++) {
+//     const row = map[y];
+//     for (let x = 0; x < row.length; x++) {
+//       if (row[x].creature?.type === 'enemy') n++;
+//     }
+//   }
+//   return n;
+// }
+
+export function checkEndConditions() {
+  if (state.gameOver || getEnemiesPositions().length === 0) { //countEnemies() === 0
+    openDialog();
+    return;
+  }
+}
+
+export function closeDialog() {
+  const d = document.getElementById('infoDiolog');
+  if (d?.open) d.close();
 }

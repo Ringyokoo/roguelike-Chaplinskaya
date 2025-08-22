@@ -17,4 +17,4 @@ export function placeItems(map, itemType, count) {
     if (placed < count) console.warn(`Не всё уместилось: ${placed}/${count}`);
 }
 
-export { ITEM_TYPES }; // удобный реэкспорт
+export { ITEM_TYPES }; 
