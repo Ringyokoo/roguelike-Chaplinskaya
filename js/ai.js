@@ -58,7 +58,7 @@ function getPossibleDirections(x, y) {
   });
 }
 
-// Получаем следующую позицию в текущем направлении
+// Получаем следующую позицию в направлении
 function getNextPositionInDirection(x, y, direction) {
   let nextX = x, nextY = y;
   
@@ -79,6 +79,60 @@ function canMoveInDirection(x, y, direction) {
   return tile && tile.type === 'floor' && !tile.creature;
 }
 
+// Направление с преоритетом текущего
+function getSmartDirection(x, y, enemy) {
+  const possibleDirections = getPossibleDirections(x, y);
+  if (possibleDirections.length === 0) return null;
+
+  // С вероятностью текущее направление продолжаем
+  if (enemy.currentDirection && canMoveInDirection(x, y, enemy.currentDirection)) {
+
+    if (Math.random() < 0.7) {
+      return enemy.currentDirection;
+    }
+  }
+
+  // Иначе выбираем новое направление
+  const randomIndex = Math.floor(Math.random() * possibleDirections.length);
+  return possibleDirections[randomIndex].dir;
+}
+
+
+function getDirectionTowardsPlayer(x, y, playerX, playerY) {
+  const dx = playerX - x;
+  const dy = playerY - y;
+  
+  // Движение по длинному катету
+  if (Math.abs(dx) > Math.abs(dy)) {
+    return dx > 0 ? 'right' : 'left';
+  } else {
+    return dy > 0 ? 'down' : 'up';
+  }
+}
+
+
+function getEnemyDirection(x, y, enemy) {
+  if (!state.playerPosition) {
+    return getSmartDirection(x, y, enemy);
+  }
+
+  const px = state.playerPosition.x;
+  const py = state.playerPosition.y;
+  const distance = Math.abs(px - x) + Math.abs(py - y);
+
+  // Попыткка приблизиться
+  if (distance <= 6) {
+    const desiredDirection = getDirectionTowardsPlayer(x, y, px, py);
+    
+    if (canMoveInDirection(x, y, desiredDirection)) {
+      return desiredDirection;
+    }
+  }
+
+  // Иначе обычное поведение
+  return getSmartDirection(x, y, enemy);
+}
+
 export function enemyStep() {
   if (state.enemyStepping || state.gameOver) return;
   state.enemyStepping = true;
@@ -94,7 +148,6 @@ export function enemyStep() {
       const px = state.playerPosition.x;
       const py = state.playerPosition.y;
 
-      // Проверяем всех врагов вокруг игрока
       const adjacentPositions = [
         { x: px, y: py - 1 }, { x: px, y: py + 1 },
         { x: px - 1, y: py }, { x: px + 1, y: py }
@@ -115,7 +168,6 @@ export function enemyStep() {
         }
       });
 
-      // Наносим урон игроку
       if (totalDamage > 0) {
         const playerTile = state.gameMap[py][px];
         if (playerTile?.creature?.type === 'player') {
@@ -133,29 +185,14 @@ export function enemyStep() {
       }
     }
 
-    // Затем двигаем врагов, которые не атакуют
+    // Двигаем врагов
     enemies.forEach(({ x, y, enemy }) => {
-      // Если враг уже атакует игрока - пропускаем движение
       if (canAttackPlayer(x, y)) return;
 
-      let nextPosition;
-      
-      // Если у врага есть текущее направление и можно двигаться в нем - продолжаем
-      if (enemy.currentDirection && canMoveInDirection(x, y, enemy.currentDirection)) {
-        nextPosition = getNextPositionInDirection(x, y, enemy.currentDirection);
-      } else {
-        // Иначе выбираем новое случайное направление
-        const possibleDirections = getPossibleDirections(x, y);
-        if (possibleDirections.length === 0) return;
-        
-        const randomDirection = possibleDirections[
-          Math.floor(Math.random() * possibleDirections.length)
-        ];
-        
-        enemy.currentDirection = randomDirection.dir;
-        nextPosition = randomDirection;
-      }
+      const direction = getEnemyDirection(x, y, enemy);
+      if (!direction) return;
 
+      const nextPosition = getNextPositionInDirection(x, y, direction);
       const key = `${nextPosition.x},${nextPosition.y}`;
 
       // Проверяем, не занята ли клетка другим врагом в этом же ходе
@@ -169,7 +206,8 @@ export function enemyStep() {
 
         if (enemyObj && !toTile.creature) {
           fromTile.creature = null;
-          enemyObj.dir = nextPosition.dir;
+          enemyObj.dir = direction;
+          enemyObj.currentDirection = direction; // Сохраняем направление
           toTile.creature = enemyObj;
           scheduleUpdate(x, y);
           scheduleUpdate(nextPosition.x, nextPosition.y);
